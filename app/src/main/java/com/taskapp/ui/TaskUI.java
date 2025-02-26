@@ -26,6 +26,7 @@ public class TaskUI {
 
     /**
      * 自動採点用に必要なコンストラクタのため、皆さんはこのコンストラクタを利用・削除はしないでください
+     * 
      * @param reader
      * @param userLogic
      * @param taskLogic
@@ -46,7 +47,7 @@ public class TaskUI {
      */
     public void displayMenu() {
         System.out.println("タスク管理アプリケーションにようこそ!!");
-        
+
         inputLogin();
         // メインメニュー
         boolean flg = true;
@@ -61,10 +62,11 @@ public class TaskUI {
 
                 switch (selectMenu) {
                     case "1":
-                    taskLogic.showAll(loginUser);
+                        taskLogic.showAll(loginUser);
+                        selectSubMenu();
                         break;
                     case "2":
-                    inputNewInformation();
+                        inputNewInformation();
                         break;
                     case "3":
                         System.out.println("ログアウトしました。");
@@ -91,20 +93,20 @@ public class TaskUI {
         while (flg) {
             try {
                 System.out.print("メールアドレスを入力してください：");
-                    String email = reader.readLine();
-                    System.out.print("パスワードを入力してください：");
-                    String password = reader.readLine();
+                String email = reader.readLine();
+                System.out.print("パスワードを入力してください：");
+                String password = reader.readLine();
 
-                    //ログイン情報を呼び出す
-                    loginUser = userLogic.login(email,password);
-                    System.out.println();
-                    flg = false;
+                // ログイン情報を呼び出す
+                loginUser = userLogic.login(email, password);
+                System.out.println();
+                flg = false;
             } catch (IOException e) {
                 e.printStackTrace();
-            } catch(AppException e){
+            } catch (AppException e) {
                 System.out.println(e.getMessage());
             }
-            
+
         }
     }
 
@@ -116,37 +118,41 @@ public class TaskUI {
      */
     public void inputNewInformation() {
         boolean flg = true;
-        while(flg){
+        while (flg) {
             try {
                 System.out.print("タスクコードを入力してください：");
                 String code = reader.readLine();
-                if(!isNumeric(code)){
+                if (!isNumeric(code)) {
                     System.out.println("半角の整数で入力してください。");
                     System.out.println();
                     continue;
                 }
                 System.out.print("タスク名を入力してください：");
                 String name = reader.readLine();
-                if(name.length() > 10){
+                if (name.length() > 10) {
                     System.out.println("タスク名は10文字以内で入力してください。");
+                    System.out.println();
                     continue;
                 }
-                System.out.print("担当するユーザーのコードを選択してください。");
+                System.out.print("担当するユーザーのコードを選択してください：");
                 String repCode = reader.readLine();
-                if(!isNumeric(repCode)){
+                if (!isNumeric(repCode)) {
                     System.out.println("半角の整数で入力してください。");
                     System.out.println();
                     continue;
                 }
-            
+
                 taskLogic.save(Integer.parseInt(code), name, Integer.parseInt(repCode), loginUser);
+                System.out.println(name + "の登録が完了しました。");
                 flg = false;
             } catch (IOException e) {
-               e.printStackTrace();
-            }catch(AppException e){
+                e.printStackTrace();
+            } catch (AppException e) {
                 System.out.println(e.getMessage());
+                System.out.println();
             }
         }
+
     }
 
     /**
@@ -155,8 +161,33 @@ public class TaskUI {
      * @see #inputChangeInformation()
      * @see #inputDeleteInformation()
      */
-    // public void selectSubMenu() {
-    // }
+    public void selectSubMenu() {
+        boolean flg = true;
+        while (flg) {
+            try {
+                System.out.println("以下1~2から好きな選択肢を選んでください。");
+                System.out.println("1. タスクのステータス変更, 2. メインメニューに戻る");
+                String select = reader.readLine();
+
+                switch (select) {
+                    case "1":
+                        flg = false;
+                        inputChangeInformation();
+                        break;
+                    case "2":
+                        flg = false;
+                        System.out.println("メインメニューに戻ります。");
+                        displayMenu();
+                        break;
+                    default:
+                        System.out.println("1もしくは2を選択してください");
+                        break;
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
 
     /**
      * ユーザーからのタスクステータス変更情報を受け取り、タスクのステータスを変更します。
@@ -164,8 +195,46 @@ public class TaskUI {
      * @see #isNumeric(String)
      * @see com.taskapp.logic.TaskLogic#changeStatus(int, int, User)
      */
-    // public void inputChangeInformation() {
-    // }
+    public void inputChangeInformation() {
+        boolean flg = true;
+        while (flg) {
+            try {
+                System.out.print("ステータスを変更するタスクコードを入力してください：");
+                String code = reader.readLine();
+                // バリデーション
+                if (!isNumeric(code)) {
+                    System.out.println("コードは半角の数字で入力してください");
+                    System.out.println();
+                    continue;
+                }
+                System.out.println("どのステータスに変更するか選択してください。");
+                System.out.println("1. 着手中, 2. 完了");
+                System.err.print("選択肢：");
+
+                String select = reader.readLine();
+                if (!isNumeric(select)) {
+                    System.out.println("コードは半角の数字で入力してください");
+                    System.out.println();
+                    continue;
+                }
+                if (!(Integer.parseInt(select) == 1 || Integer.parseInt(select) == 2)) {
+                    System.out.println("ステータスは1・2の中から選択してください");
+                    System.out.println();
+                    continue;
+                }
+                taskLogic.changeStatus(Integer.parseInt(code), Integer.parseInt(select), loginUser);
+                System.out.println("ステータスの変更が完了しました。");
+                flg = false;
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (AppException e) {
+                System.out.println(e.getMessage());
+                System.out.println();
+                continue;
+            }
+        }
+
+    }
 
     /**
      * ユーザーからのタスク削除情報を受け取り、タスクを削除します。

@@ -1,11 +1,13 @@
 package com.taskapp.logic;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import com.taskapp.dataaccess.LogDataAccess;
 import com.taskapp.dataaccess.TaskDataAccess;
 import com.taskapp.dataaccess.UserDataAccess;
 import com.taskapp.exception.AppException;
+import com.taskapp.model.Log;
 import com.taskapp.model.Task;
 import com.taskapp.model.User;
 
@@ -83,12 +85,16 @@ public class TaskLogic {
      */
     public void save(int code, String name, int repUserCode,
                     User loginUser) throws AppException {
-        if(userDataAccess.findByCode(code) == null){
-            throw new AppException("存在するコードを入力してください。");
+        if(userDataAccess.findByCode(repUserCode) == null){
+            throw new AppException("存在するユーザーコードを入力してください");
         }
             //選択したtaskデータを取得する
-            Task task = new Task(code, name, repUserCode, loginUser);
+           User user =  userDataAccess.findByCode(repUserCode);
+            Task task = new Task(code, name, 0, user);
             taskDataAccess.save(task);
+            LocalDate date = LocalDate.now();
+            Log log = new Log(code, loginUser.getCode(), 0, date);
+            logDataAccess.save(log);
     }
 
     /**
@@ -102,9 +108,21 @@ public class TaskLogic {
      * @param loginUser ログインユーザー
      * @throws AppException タスクコードが存在しない、またはステータスが前のステータスより1つ先でない場合にスローされます
      */
-    // public void changeStatus(int code, int status,
-    //                         User loginUser) throws AppException {
-    // }
+    public void changeStatus(int code, int status,
+                            User loginUser) throws AppException {
+                Task task = taskDataAccess.findByCode(code);
+            if(task == null){
+                throw new AppException("存在するタスクコードを入力してください。");
+            }
+            if(status - task.getStatus() != 1){
+                throw new AppException("ステータスは、前のステータスより1つ先のもののみを選択してください");
+            }
+            task.setStatus(status);
+            taskDataAccess.update(task);
+            LocalDate date = LocalDate.now();
+            Log log = new Log(code, loginUser.getCode(), task.getStatus(), date);
+            logDataAccess.save(log);
+    }
 
     /**
      * タスクを削除します。
