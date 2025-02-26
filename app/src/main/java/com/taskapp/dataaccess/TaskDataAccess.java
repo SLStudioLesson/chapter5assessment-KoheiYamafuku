@@ -107,7 +107,7 @@ public class TaskDataAccess {
                 int repUserCode = Integer.parseInt(values[3]);
 
                 //taskオブジェクトにマッピングしていく
-                task = new Task(repUserCode, name, status, userDataAccess.findByCode(repUserCode));
+                task = new Task(code, name, status, userDataAccess.findByCode(repUserCode));
                 break;
             }
         } catch (IOException e) {
